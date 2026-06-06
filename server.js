@@ -1,15 +1,16 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+const dotenv = require("dotenv");
+dotenv.config();
 
 const connectDB = require("./Utils/db");
 
 // Route imports
-const userRoutes    = require("./Routers/UserRoutes");
-const sellerRoutes  = require("./Routers/SellerRoutes");
-const contactRoutes = require("./Routers/ContactRoutes");
-const adoptionRoutes= require("./Routers/AdoptionRoutes");
-const adminRoutes   = require("./Routers/AdminRoutes");
+const userRoutes     = require("./Routers/UserRoutes");
+const sellerRoutes   = require("./Routers/SellerRoutes");
+const contactRoutes  = require("./Routers/ContactRoutes");
+const adoptionRoutes = require("./Routers/AdoptionRoutes");
+const adminRoutes    = require("./Routers/AdminRoutes");
 
 const app = express();
 
@@ -27,8 +28,8 @@ app.use("/api/admin",    adminRoutes);
 // Health check
 app.get("/", (req, res) => res.send("PetZone API is running..."));
 
-// Connect DB then start server
+// Start server first, then connect DB
 const PORT = process.env.PORT || 5000;
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+connectDB();
