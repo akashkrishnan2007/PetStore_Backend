@@ -1,60 +1,24 @@
-const Admin = require("../Models/AdminModel");
 const User = require("../Models/UserModel");
 const Seller = require("../Models/SellerModel");
 const Contact = require("../Models/ContactModel");
 const Adoption = require("../Models/AdoptionModel");
-const bcrypt = require("bcryptjs");
 const { generateToken } = require("../Utils/jwt");
 
+const ADMIN_EMAIL    = "admin@petzone.com";
+const ADMIN_PASSWORD = "Admin123";
+
 // POST /api/admin/login
-const loginAdmin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    console.log("[ADMIN LOGIN] Request Received | email:", email);
+const loginAdmin = (req, res) => {
+  const { email, password } = req.body;
 
-    if (!email || !password)
-      return res.status(400).json({ message: "Email and password are required" });
+  if (!email || !password)
+    return res.status(400).json({ message: "Email and password are required" });
 
-    const admin = await Admin.findOne({ email });
-    console.log("[ADMIN LOGIN] Admin Found:", !!admin);
-    if (!admin) {
-      console.log("[ADMIN LOGIN] No admin document found for email:", email);
-      return res.status(404).json({ message: "Admin not found" });
-    }
-    console.log("[ADMIN LOGIN] Admin DB Email:", admin.email);
+  if (email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD)
+    return res.status(401).json({ message: "Invalid Admin Credentials" });
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    console.log("[ADMIN LOGIN] Password Match:", isMatch);
-    if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials" });
-
-    const token = generateToken({ id: admin._id, email: admin.email, role: "admin" });
-    console.log("[ADMIN LOGIN] Login Successful | token generated for:", admin.email);
-    res.status(200).json({ message: "Admin login successful", token, admin: { id: admin._id, name: admin.name, email: admin.email } });
-  } catch (error) {
-    console.error("[ADMIN LOGIN ERROR]", error.message);
-    res.status(500).json({ message: "Login failed", error: error.message });
-  }
-};
-
-// POST /api/admin/register  (one-time setup to create admin)
-const registerAdmin = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password)
-      return res.status(400).json({ message: "All fields are required" });
-
-    const existing = await Admin.findOne({ email });
-    if (existing)
-      return res.status(409).json({ message: "Admin already exists" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const admin = await Admin.create({ name, email, password: hashedPassword });
-    res.status(201).json({ message: "Admin registered successfully", admin: { id: admin._id, name, email } });
-  } catch (error) {
-    res.status(500).json({ message: "Registration failed", error: error.message });
-  }
+  const token = generateToken({ email: ADMIN_EMAIL, role: "admin" });
+  res.status(200).json({ message: "Admin login successful", token, admin: { name: "Admin", email: ADMIN_EMAIL } });
 };
 
 // GET /api/admin/dashboard
@@ -86,4 +50,4 @@ const getDashboard = async (req, res) => {
   }
 };
 
-module.exports = { loginAdmin, registerAdmin, getDashboard };
+module.exports = { loginAdmin, getDashboard };
