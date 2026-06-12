@@ -30,6 +30,8 @@ const registerUser = async (req, res) => {
     const token = generateToken({ id: user._id, email: user.email });
     res.status(201).json({ message: "User registered successfully", token, user: { id: user._id, firstname, lastname, email } });
   } catch (error) {
+    if (error.code === 11000)
+      return res.status(409).json({ message: "Email already registered" });
     res.status(500).json({ message: "Registration failed", error: error.message });
   }
 };

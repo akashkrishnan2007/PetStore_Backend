@@ -30,6 +30,8 @@ const registerSeller = async (req, res) => {
     const token = generateToken({ id: seller._id, email: seller.email, role: "seller" });
     res.status(201).json({ message: "Seller registered successfully", token, seller: { id: seller._id, name, shopName, email } });
   } catch (error) {
+    if (error.code === 11000)
+      return res.status(409).json({ message: "Email already registered" });
     res.status(500).json({ message: "Registration failed", error: error.message });
   }
 };
