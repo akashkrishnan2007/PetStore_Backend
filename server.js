@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const connectDB = require("./Utils/db");
+const bcrypt = require("bcryptjs");
+const Admin = require("./Models/AdminModel");
 
 // Route imports
 const userRoutes     = require("./Routers/UserRoutes");
@@ -28,8 +30,19 @@ app.use("/api/admin",    adminRoutes);
 // Health check
 app.get("/", (req, res) => res.send("PetZone API is running..."));
 
-// Start server first, then connect DB
+// Auto-seed admin on startup
+const seedAdmin = async () => {
+  const existing = await Admin.findOne({ email: "admin@petzone.com" });
+  if (!existing) {
+    const hashed = await bcrypt.hash("Admin123", 10);
+    await Admin.create({ name: "Admin", email: "admin@petzone.com", password: hashed });
+    console.log("[SEED] Admin created: admin@petzone.com / Admin123");
+  } else {
+    console.log("[SEED] Admin already exists.");
+  }
+};
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-connectDB();
+connectDB().then(seedAdmin);
